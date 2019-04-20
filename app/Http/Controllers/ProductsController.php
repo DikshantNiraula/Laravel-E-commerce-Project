@@ -1,35 +1,78 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Category;
+use App\User;
+use App\Brand;
 use App\Product;
+use App\Comment;
 
 use Illuminate\Http\Request;
 
 class ProductsController extends Controller
 {
     public function index(){
-        $products = product::all();
-    	return view('products.index')->with('products',$products);
+        $products = product::orderBy('created_at', 'desc')->paginate(9);
+        $categories = Category::all();
+        return view('products.index')->with('products',$products)->with('categories',$categories);
     }
 
     public function create(){
-        return view('products.add');
+        $categories = Category::all();
+        $brands = Brand::all();
+        return view('products.add')->with('categories',$categories)->with('brands',$brands);
     }
 
     public function store(Request $request){
-        $input  = $request->all();
-        $input['user_id'] = 1;
-        Product::create($input);
 
+        // return $request;
+        $request->validate([
+            'name' => 'required|min:5|max:30',
+            'description' => 'required|min:5|max:50',
+            'price' => 'required',
+            'category_id' => 'required',
+            'quantity' => 'required'
+        ]);
+
+
+        $input = $request->all();
+        $input['user_id'] = \Auth::user()->id;
+        
+        if($request->hasFile('image')){
+
+            $destination_path = 'public/images/products';
+            $image = $request->file('image');
+            $image_name = $image->getClientOriginalName();
+
+           $path = $request->file('image')->storeAs($destination_path,$image_name);
+
+           $input['image'] = $image_name;    
+                
+        }
+                
+        Product::create($input);
+        // session(['message' => 'product succesfully added']);
+        session()->flash('message',$input['name'].' succesfully saved');
         return redirect(url('products'));
     }
     public function edit($product){
-        $product123 = Product::find($product);
-        return view('products.edit')->with('product',$product123);
+        $product = Product::find($product);
+        $brands = Brand::all();
+        $categories = Category::all();
 
-        // return redirect(url('products'));
+        return view('products.edit')->with('product',$product)->with('categories',$categories)->with('brands',$brands);
+
     }
     public function update($product,Request $request){
+
+        $request->validate([
+            'name' => 'required|min:5|max:30',
+            'description' => 'required|min:5|max:50',
+            'price' => 'required',
+            'category_id' => 'required',
+            'brand_id' => 'required'
+
+        ]);
 
         $input = $request->all();
         $product = Product::find($product);
@@ -38,8 +81,11 @@ class ProductsController extends Controller
         $product->category_id = $input['category_id'];
         $product->description  = $input['description'];
         $product->price = $input['price'];
+        $product->quantity = $input['quantity'];
+        $product->brand_id = $input['brand_id'];
 
         $product->save();
+        session()->flash('message',$input['name'].' succesfully updated');
 
         return redirect(url('products'));
     
@@ -48,7 +94,16 @@ class ProductsController extends Controller
     public function destroy($product){
         Product::find($product)->delete();
         return redirect('products');
-
     }
+
+    public function show($product){
+    $products = Product::find($product);
+    $users = User::all();
+    $comments = $products->comments;    
+
+        return view('products.show')->with('product',$products)->with('user',$users)->with('comments',$comments);
+    }
+
+     
 }
 
