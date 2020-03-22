@@ -11,15 +11,17 @@ use App\Comment;
 class CommentController extends Controller
 {
 
-    public function comment($comment){
+    public function comment($comment)
+    {
         // $products = Product::find($comment);
         // $users = User::all();
         // $comments = Comment::with($products)->orderBy('created_at', 'desc')->get();
-        return redirect('products.show')->with('products',$products)->with('comments',$comments)->with('users',$user);
+        return redirect('products.show')->with('products', $products)->with('comments', $comments)->with('users', $user);
     }
 
-    public function storeComment(Request $request){
-        
+    public function storeComment(Request $request)
+    {
+
         $request->validate([
             'comment' => 'required|min:5|max:300'
         ]);
@@ -38,11 +40,12 @@ class CommentController extends Controller
         session()->flash('your comment was Succesfully added');
         return redirect()->back();
     }
-   
 
-    public function delete($comment){
+
+    public function delete($comment)
+    {
         Comment::find($comment)->delete();
-        return redirect()->back();
+        return redirect('/');
         // return \App::make('redirect')->refresh()->with('flash_success', 'Thank you,!');
 
     }

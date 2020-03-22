@@ -11,11 +11,14 @@
 |
 */
 
- Route::get('/', function () {
-      return view('welcome');
- });
+//  Route::get('/', function () {
+//       return view('products.index');
+//  });
+use App\Http\Controllers\ProductsController;
+
+Route::get('/','ProductsController@index');
  
-Route::resource('products','ProductsController')->middleware('auth');
+Route::resource('products','ProductsController');
 // Route::get('/products', 'ProductsController@index');
 // Route::get('products/add','ProductsController@create');
 // Route::post('products','ProductsController@store');

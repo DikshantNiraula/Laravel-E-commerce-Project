@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use Auth;
 use App\Category;
 use App\User;
 use App\Brand;
@@ -8,11 +9,12 @@ use App\Product;
 use App\Comment;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class ProductsController extends Controller
 {
     public function index(){
-        $products = product::orderBy('created_at', 'desc')->paginate(9);
+        $products = Product::orderBy('created_at', 'desc')->paginate(9);
         $categories = Category::all();
         return view('products.index')->with('products',$products)->with('categories',$categories);
     }
@@ -20,7 +22,10 @@ class ProductsController extends Controller
     public function create(){
         $categories = Category::all();
         $brands = Brand::all();
+        if(Auth::user())
         return view('products.add')->with('categories',$categories)->with('brands',$brands);
+        else
+        return view('auth.login');
     }
 
     public function store(Request $request){
@@ -50,18 +55,26 @@ class ProductsController extends Controller
                 
         }
                 
-        Product::create($input);
+       $product = Product::create($input);
+
+       Mail::send('emails.productCreated', $product->toArray(), function($message){
+           $message->to('dikshantniraula351@gmail.com', 'Dikshant niraula')
+           ->subject('Product created Subject');
+       });
+        
+
         // session(['message' => 'product succesfully added']);
         session()->flash('message',$input['name'].' succesfully saved');
-        return redirect(url('products'));
+        return redirect(url('products'));       
     }
     public function edit($product){
         $product = Product::find($product);
         $brands = Brand::all();
         $categories = Category::all();
-
+        if(Auth::user())
         return view('products.edit')->with('product',$product)->with('categories',$categories)->with('brands',$brands);
-
+        else
+        return view('auth.login');
     }
     public function update($product,Request $request){
 
@@ -92,7 +105,7 @@ class ProductsController extends Controller
     }
 
     public function destroy($product){
-        Product::find($product)->delete();
+         Product::find($product)->delete();
         return redirect('products');
     }
 

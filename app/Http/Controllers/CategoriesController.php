@@ -1,4 +1,4 @@
-<?php
+   <?php
 
 namespace App\Http\Controllers;
 use App\Category;
@@ -39,7 +39,7 @@ public function edit($categories){
 }
 public function update($categories,Request $request){
     $request->validate([
-        'name' => 'required||min:3|max:30',
+        'name' => 'required|min:3|max:30',
         'status' => 'required|boolean'
      ]);
 
@@ -49,7 +49,7 @@ $categories ->name = $input['name'];
 // $categories ->categoriesname = $input['categoriesname'];
 
 
-$categories->save();
+$categories->save(); 
 session()->flash('message','categories record'.' '.$input['name'].' succesfully updated');
 
 return redirect('categories');
